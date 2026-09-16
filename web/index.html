@@ -1,0 +1,7 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>K12 智能作业批改</title><link rel="stylesheet" href="/static/style.css"></head>
+<body><main><header><p class="eyebrow">LOCAL FIRST · AI ASSISTED</p><h1>K12 智能作业批改</h1><p>上传清晰作业照片，使用你自己的模型 API 生成逐题反馈。</p></header>
+<section class="notice">API Key 仅在本次请求中发送给本地服务转发至你选择的模型供应商；本应用不会保存它，也不会保存作业文件。</section>
+<form id="grader"><div class="grid"><label>作业图片<input name="file" type="file" accept="image/jpeg,image/png,image/webp" required></label><label>API Key<input name="api_key" type="password" autocomplete="off" placeholder="sk-..." required></label><label>接口 Base URL<input name="base_url" value="https://api.openai.com/v1" required></label><label>视觉模型名<input name="model" value="gpt-4.1-mini" required></label><label>学科（可留空）<input name="subject" placeholder="如：数学"></label><label>年级（可留空）<input name="grade" placeholder="如：五年级"></label></div><label>教师评分要求（可选）<textarea name="rubric" placeholder="如：每题 5 分，过程正确可给部分分；只评价本次作业。"></textarea></label><button id="submit" type="submit">开始批改</button></form>
+<p id="status" role="status"></p><section id="result" hidden></section></main><script src="/static/app.js"></script></body></html>

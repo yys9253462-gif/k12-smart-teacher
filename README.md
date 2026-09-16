@@ -1,5 +1,21 @@
 # K12 Smart Teacher - 智能老师辅导系统
 
+## Web 批改 MVP（新增）
+
+本仓库现提供一个本地 Web MVP：上传作业图片，使用**你自己的、OpenAI 兼容的视觉模型 API**返回逐题批改、错因和学习建议。API Key 仅用于当前请求，不写入文件、数据库或浏览器存储。
+
+```bash
+python -m venv .venv
+# Windows: .venv\Scripts\activate
+# macOS/Linux: source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn app:app --reload
+```
+
+打开 `http://127.0.0.1:8000`。默认 Base URL 为 OpenAI；也可填写任意 OpenAI-compatible 服务地址和支持图片输入的模型名。
+
+当前版本仅接收 JPG、PNG、WEBP（最大 12MB）；PDF、多页作业、登录账户、历史档案和正式成绩发布尚未实现。AI 结果只适合辅助批改，必须人工复核低置信度或“需人工确认”题目。
+
 [![Skill](https://img.shields.io/badge/Skill-k12--smart--teacher-blue)](https://skillhub.cn)
 [![Version](https://img.shields.io/badge/Version-1.0.4-brightgreen)](https://skillhub.cn)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
