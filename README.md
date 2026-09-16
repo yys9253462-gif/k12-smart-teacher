@@ -1,236 +1,86 @@
-# K12 Smart Teacher - 智能老师辅导系统
+# K12 作业批改工具
 
-## Web 批改 MVP（新增）
+一个本地运行的 K12 作业图片批改 Web 应用。上传作业照片后，应用通过你自行配置的、兼容 OpenAI API 的视觉模型生成逐题批改结果。
 
-本仓库现提供一个本地 Web MVP：上传作业图片，使用**你自己的、OpenAI 兼容的视觉模型 API**返回逐题批改、错因和学习建议。API Key 仅用于当前请求，不写入文件、数据库或浏览器存储。
+本项目**只通过 API Key 调用模型**：不需要安装或接入任何智能体、Skill、Agent 平台、记忆系统或联网搜索工具。
+
+## 功能
+
+- 上传 JPG、PNG、WEBP 格式的清晰作业照片（最大 12MB）
+- 每次批改时填写 API Key、API Base URL 与视觉模型名称
+- 支持 OpenAI-compatible 接口，例如 OpenAI、DeepSeek、通义兼容接口、OneAPI、硅基流动或本地 Ollama 服务（前提是模型支持图片输入与 Chat Completions）
+- 可选填写学生年级、学科和教师评分要求
+- 输出逐题状态、建议得分、批改依据、讲解、置信度、薄弱知识点与后续建议
+- 对模型不确定的识别结果提示人工复核
+
+## API Key 与隐私
+
+- API Key 仅在当前浏览器请求中提交给本地服务，用于转发到你指定的模型供应商。
+- 应用不会将 API Key 写入文件、数据库、日志或浏览器存储。
+- 应用不会保存作业图片和批改记录；刷新页面后结果即丢失。
+- 作业图片会发送给你填入的 API Base URL 对应服务。请在使用前确认该服务的数据处理政策，并在涉及未成年人作业时取得必要授权。
+
+## 本地运行
+
+要求：Python 3.10 或更高版本。
 
 ```bash
+git clone https://github.com/yys9253462-gif/k12-smart-teacher.git
+cd k12-smart-teacher
+
 python -m venv .venv
-# Windows: .venv\Scripts\activate
-# macOS/Linux: source .venv/bin/activate
+# Windows
+.venv\Scripts\activate
+# macOS / Linux
+source .venv/bin/activate
+
 pip install -r requirements.txt
 uvicorn app:app --reload
 ```
 
-打开 `http://127.0.0.1:8000`。默认 Base URL 为 OpenAI；也可填写任意 OpenAI-compatible 服务地址和支持图片输入的模型名。
+浏览器打开 <http://127.0.0.1:8000>。
 
-当前版本仅接收 JPG、PNG、WEBP（最大 12MB）；PDF、多页作业、登录账户、历史档案和正式成绩发布尚未实现。AI 结果只适合辅助批改，必须人工复核低置信度或“需人工确认”题目。
+## 使用方式
 
-[![Skill](https://img.shields.io/badge/Skill-k12--smart--teacher-blue)](https://skillhub.cn)
-[![Version](https://img.shields.io/badge/Version-1.0.4-brightgreen)](https://skillhub.cn)
-[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
-[![Platform](https://img.shields.io/badge/Platform-WorkBuddy%20%7C%20OpenClaw%20%7C%20ClaudeCode-orange)](https://skillhub.cn)
+1. 选择一张清晰、完整、单页的作业图片。
+2. 输入你的 API Key。
+3. 填写接口地址和支持视觉输入的模型名；OpenAI 默认值为 `https://api.openai.com/v1` 与 `gpt-4.1-mini`。
+4. 可按需补充学科、年级和评分规则。
+5. 点击“开始批改”，再人工检查低置信度或“需人工确认”的题目。
 
-> K12智能老师辅导系统，支持作业批改、错题分析、可视化讲解、举一反三练习生成。覆盖小学/初中/高中全学段，九大学科。每个学科都内置4个高频主题，统一生成基础/提高/挑战三层练习，避免只偏重某一科。
+## 接口要求
 
----
-
-## 先看这里：核心规则
-
-快速使用请先看 [QUICKSTART.md](QUICKSTART.md)，输出文件样例看 [OUTPUT_EXAMPLES.md](OUTPUT_EXAMPLES.md)，排障看 [FAQ.md](FAQ.md)，完整教学规则再看 [SKILL.md](SKILL.md)。
-
-1. **先讲懂，再练习**：不要直接甩题目；先讲错因、方法和例子。
-2. **必须推荐视频**：错题讲解后推荐1-2个国内平台学习视频；搜索失败时给B站关键词。
-3. **文档失败不崩溃**：Word生成失败时自动给Markdown版。
-4. **看不清就追问**：题图模糊或教材版本影响答案时，先说明缺什么，再给可复制补充话术。
-
----
-
-## ✨ 核心功能
-
-| 功能 | 描述 |
-|------|------|
-| 📋 **作业批改** | 自动识别试题并批改，生成详细分析报告 |
-| 🎯 **错题分析** | 智能识别薄弱知识点，提供错因分析 |
-| 🎨 **可视化讲解** | 图形、漫画、动画等方式讲解错题（禁止纯文字） |
-| 📺 **视频推荐** | 自动搜索并推荐优质B站/学而思等解题视频 |
-| 📝 **梯度练习** | 自动生成基础/提高/挑战三层次练习 |
-| 📊 **学习报告** | 自动生成学习报告，跟踪知识点掌握进度 |
-| 🤖 **智能识别** | 自动识别学科和年级，无需手动指定 |
-| 📄 **练习文件** | 支持Markdown/JSON；安装 python-docx 后支持Word |
-
----
-
-## 📚 支持范围
-
-### 学段覆盖
-- ✅ 小学（一年级至六年级）
-- ✅ 初中（初一至初三）
-- ✅ 高中（高一至高三）
-
-### 学科覆盖与当前能力
-
-| 学科 | 内置均衡主题 |
-|------|--------------|
-| 语文 | 阅读理解、病句修改、古诗词鉴赏、作文提纲 |
-| 数学 | 最大公因数、分数应用题、一次函数、二次函数 |
-| 英语 | 现在完成时、一般过去时、阅读理解、被动语态 |
-| 物理 | 浮力、欧姆定律、牛顿第二定律、光的反射 |
-| 化学 | 化学方程式、酸碱盐、质量守恒定律、溶液浓度 |
-| 生物 | 细胞结构、遗传规律、生态系统、人体消化 |
-| 历史 | 辛亥革命、工业革命、抗日战争、秦朝统一 |
-| 地理 | 气候类型、经纬网、人口迁移、河流地貌 |
-| 政治 | 公民权利、法治观念、经济生活、责任担当 |
-
-> 想要更贴合教材，请补充：年级、教材版本、章节名、错题照片或原题文字。
-
----
-
-## 🗣️ 怎么开口使用
-
-可以直接这样说：
+服务端调用：
 
 ```text
-孩子五年级，数学最大公因数总错。请先讲明白，再出8题以内练习，最后给答案。
+POST {Base URL}/chat/completions
+Authorization: Bearer {API Key}
 ```
+
+请求内容遵循 OpenAI Chat Completions 的图片输入格式，因此所选服务和模型必须同时支持该接口与视觉输入。
+
+## 当前限制
+
+- 当前仅支持单张图片，不支持 PDF、多页作业和摄像头拍摄。
+- 不提供账户、班级管理、学生档案、批改历史、成绩发布或自动通知。
+- 不会自动联网搜索资料、推荐视频或执行外部操作。
+- 模型输出只能作为辅助批改，不应用作未经教师/家长复核的正式成绩。
+
+## 项目结构
 
 ```text
-这张作业帮我批改。请按：错题、错因、可视化讲解、推荐视频、举一反三练习 的顺序来。
+app.py                    # FastAPI 后端与 OpenAI-compatible API 调用
+web/                      # 静态网页前端
+requirements.txt          # 运行依赖
+scripts/generate_paper.py # 独立的练习卷文件生成脚本
 ```
 
-```text
-生成一份初二物理“浮力”的练习。如果Word生成不了，就给我可打印的Markdown版。
-```
-
----
-
-## ⚠️ 能力边界
-
-- 作业照片识别依赖图片清晰度；看不清时会请你补图或输入题目。
-- Word文件依赖 `python-docx`；缺少依赖时会自动降级生成Markdown，不会直接中断。
-- 九大学科都能生成基础练习，但非数学专项题需要教材、章节或原题材料才能更精准。
-- 不替孩子直接完成作业；会先讲解思路，再给答案和同类练习。
-
----
-
-## 🚀 快速安装
-
-### SkillHub 安装（推荐）
-
-在支持 SkillHub 的 AI 工具中执行：
-```
-安装技能：k12-smart-teacher
-```
-
-### 手动安装
+## 开发验证
 
 ```bash
-# WorkBuddy
-git clone https://github.com/shellery1988/k12-smart-teacher.git ~/.workbuddy/skills/k12-smart-teacher
-
-# OpenClaw
-git clone https://github.com/shellery1988/k12-smart-teacher.git ~/.openclaw/skills/k12-smart-teacher
-
-# ClaudeCode
-git clone https://github.com/shellery1988/k12-smart-teacher.git ~/.claudecode/skills/k12-smart-teacher
-
-# 安装依赖（首次使用，自动安装）
-cd k12-smart-teacher && python3 scripts/quick_setup.py
+python -m py_compile app.py
 ```
 
----
+## 许可证
 
-## 🎯 核心理念
-
-> **理解优先于练习！**
-
-教学流程：**错题分析 → 可视化讲解 → 视频推荐 → 举一反三练习**
-
-绝对不能跳过"错题讲解"直接生成练习题。
-
----
-
-## 📁 文件结构
-
-```
-k12-smart-teacher/
-├── SKILL.md                    # 核心技能指令文档
-├── QUICKSTART.md               # 快速索引：触发话术、均衡主题、常见问题
-├── OUTPUT_EXAMPLES.md          # 输出文件示例：Markdown/JSON/Word降级
-├── FAQ.md                      # 常见问题与排障
-├── README.md                   # 项目说明（本文件）
-├── LICENSE                     # MIT 许可证
-├── scripts/
-│   ├── generate_paper.py       # 试卷生成脚本
-│   ├── setup_dependencies.sh   # 依赖安装脚本(Bash)
-│   └── quick_setup.py          # 快速安装脚本(Python)
-├── references/
-│   ├── math_knowledge.md       # 数学知识点库
-│   ├── balanced_topic_bank.json # 九大学科均衡主题题库索引
-│   ├── subject_identification.md  # 学科识别指南
-│   └── video_resources.md      # 视频资源推荐指南
-└── assets/                     # 资源文件目录
-```
-
----
-
-## 🧪 直接生成练习文件
-
-```bash
-python3 scripts/generate_paper.py \
-  --subject 数学 \
-  --topic 最大公因数 \
-  --student 小明 \
-  --grade 五年级 \
-  --output 练习/小明-最大公因数.docx
-```
-
-查看内置专项/推荐主题：
-
-```bash
-python3 scripts/generate_paper.py --list-examples
-```
-
-支持输出：
-- `.docx`：安装 `python-docx` 后生成Word
-- `.md`：可打印Markdown，依赖最少
-- `.json`：方便其他工具继续处理
-
-如果 `.docx` 依赖不可用，脚本会自动生成同名 `.md` 文件，并给出中文提示。
-
-完整文件示例见 [OUTPUT_EXAMPLES.md](OUTPUT_EXAMPLES.md)。
-
----
-
-## 🛠️ 依赖说明
-
-首次使用前可执行依赖检查和安装：
-
-- **Python**：pillow, requests, python-docx, openpyxl
-- **Node.js**：docx
-- **系统（可选）**：tesseract（OCR），imagemagick
-
-```bash
-python3 scripts/quick_setup.py
-```
-
----
-
-## ❓ 常见问题
-
-更完整的问题处理见 [FAQ.md](FAQ.md)。
-
-**Q：生成Word失败怎么办？**  
-A：脚本会自动降级生成Markdown。需要Word时，先运行 `python3 scripts/quick_setup.py` 安装依赖。
-
-**Q：视频推荐打不开怎么办？**  
-A：优先推荐国内平台。若搜索失败，会提供B站可复制关键词，方便手动查找。
-
----
-
-## 📄 许可证
-
-本项目采用 [MIT 许可证](LICENSE)
-
----
-
-## 👤 联系方式
-
-- 📧 **邮箱**：shelleryliu@163.com
-- 💬 **微信**：naskfcode
-- 🔗 **GitHub**：https://github.com/shellery1988/k12-smart-teacher
-- 🔗 **GitCode**：https://gitcode.com/shellery1988/k12-smart-teacher
-
----
-
-**Made with ❤️ for K12 Education**
+[MIT](LICENSE)

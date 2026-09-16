@@ -8,9 +8,7 @@ from __future__ import annotations
 
 import base64
 import json
-import os
 from pathlib import Path
-from typing import Literal
 
 import httpx
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
@@ -114,4 +112,3 @@ async def grade_homework(
         raise HTTPException(status_code=422, detail="当前 MVP 请上传清晰的单页图片；PDF 转图片支持将在下一阶段加入。")
     return await call_model(api_key=api_key, base_url=base_url, model=model, media=media,
                             mime_type=file.content_type, subject=subject, grade=grade, rubric=rubric)
-
